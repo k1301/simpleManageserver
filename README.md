@@ -64,19 +64,23 @@ curl -X POST http://localhost:8000/tickets \
 
 ```
 it-helpdesk-api/
-├── main.py                   # FastAPI 애플리케이션
-├── models.py                 # Pydantic 데이터 모델
-├── requirements.txt          # Python 패키지 의존성
-├── openapi.json             # OpenAPI 3.0 스펙 (Bedrock 연동용)
+├── main.py                      # FastAPI 애플리케이션
+├── models.py                    # Pydantic 데이터 모델
+├── requirements.txt             # Python 패키지 의존성
+├── openapi.json                # OpenAPI 3.0 스펙 (Bedrock 연동용)
 │
-├── Dockerfile               # Docker 컨테이너 이미지
-├── docker-compose.yml       # Docker Compose 설정
-├── .dockerignore           # Docker 빌드 제외 파일
+├── Dockerfile                  # Docker 컨테이너 이미지
+├── docker-compose.yml          # Docker Compose 설정
+├── .dockerignore              # Docker 빌드 제외 파일
 │
-├── ECS_DEPLOY.md           # ECS 배포 가이드 (권장)
-├── EC2_DEPLOY.md           # EC2 배포 가이드 (빠른 테스트)
-├── deploy.sh               # EC2 배포 스크립트
-└── helpdesk-api.service    # Systemd 서비스 파일
+├── cloudformation.yaml         # CloudFormation IaC 템플릿
+├── deploy-cloudformation.sh    # CloudFormation 배포 스크립트
+├── CLOUDFORMATION.md          # CloudFormation 가이드
+│
+├── ECS_DEPLOY.md              # ECS 수동 배포 가이드
+├── EC2_DEPLOY.md              # EC2 배포 가이드 (빠른 테스트)
+├── deploy.sh                  # EC2 배포 스크립트
+└── helpdesk-api.service       # Systemd 서비스 파일
 ```
 
 ## 🐳 Docker 실행 (로컬 테스트)
@@ -110,15 +114,34 @@ open http://localhost:8000/docs
 
 ## ☁️ 클라우드 배포
 
-### 🎯 ECS 배포 (권장 - 프로덕션)
+### 🚀 CloudFormation 자동 배포 (추천 ⭐)
 
-AWS ECS Fargate를 사용한 서버리스 컨테이너 배포입니다.
+**전체 인프라를 한 번에 자동으로 생성**하는 가장 쉬운 방법입니다!
 
-**장점:**
-- ✅ 서버 관리 불필요
-- ✅ 자동 스케일링
-- ✅ 로드 밸런서 통합 쉬움
-- ✅ CI/CD 파이프라인 구축 용이
+생성되는 리소스:
+- ✅ **ALB (Application Load Balancer)** - Bedrock Gateway 연결용
+- ✅ ECR Repository, ECS Cluster, Task Definition, Service
+- ✅ Security Groups, IAM Roles, CloudWatch Logs
+- ✅ **5-10분이면 전체 인프라 완성!**
+
+**한 줄 명령어로 배포:**
+```bash
+./deploy-cloudformation.sh
+```
+
+스크립트가 자동으로:
+1. AWS 계정 및 VPC 확인
+2. 파라미터 입력 받기
+3. CloudFormation 스택 생성
+4. ALB DNS 제공 (Bedrock Gateway 연결용)
+
+상세한 가이드는 **[CLOUDFORMATION.md](CLOUDFORMATION.md)**를 참고하세요.
+
+---
+
+### 🎯 ECS 수동 배포 (고급 사용자)
+
+CloudFormation 대신 직접 ECS 리소스를 관리하고 싶다면:
 
 상세한 배포 가이드는 **[ECS_DEPLOY.md](ECS_DEPLOY.md)**를 참고하세요.
 
