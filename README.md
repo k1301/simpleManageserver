@@ -64,18 +64,85 @@ curl -X POST http://localhost:8000/tickets \
 
 ```
 it-helpdesk-api/
-├── main.py                # FastAPI 애플리케이션
-├── models.py              # Pydantic 데이터 모델
-├── requirements.txt       # Python 패키지 의존성
-├── openapi.json          # OpenAPI 3.0 스펙 (Bedrock 연동용)
-├── deploy.sh             # EC2 배포 스크립트
-├── helpdesk-api.service  # Systemd 서비스 파일
-└── EC2_DEPLOY.md         # 상세 배포 가이드
+├── main.py                   # FastAPI 애플리케이션
+├── models.py                 # Pydantic 데이터 모델
+├── requirements.txt          # Python 패키지 의존성
+├── openapi.json             # OpenAPI 3.0 스펙 (Bedrock 연동용)
+│
+├── Dockerfile               # Docker 컨테이너 이미지
+├── docker-compose.yml       # Docker Compose 설정
+├── .dockerignore           # Docker 빌드 제외 파일
+│
+├── ECS_DEPLOY.md           # ECS 배포 가이드 (권장)
+├── EC2_DEPLOY.md           # EC2 배포 가이드 (빠른 테스트)
+├── deploy.sh               # EC2 배포 스크립트
+└── helpdesk-api.service    # Systemd 서비스 파일
 ```
 
-## ☁️ EC2 배포
+## 🐳 Docker 실행 (로컬 테스트)
 
-상세한 배포 가이드는 [EC2_DEPLOY.md](EC2_DEPLOY.md)를 참고하세요.
+### Docker Compose 사용 (권장):
+```bash
+# 빌드 및 실행
+docker-compose up
+
+# 백그라운드 실행
+docker-compose up -d
+
+# 로그 확인
+docker-compose logs -f
+
+# 종료
+docker-compose down
+```
+
+### Docker 직접 사용:
+```bash
+# 이미지 빌드
+docker build -t it-helpdesk-api .
+
+# 컨테이너 실행
+docker run -p 8000:8000 it-helpdesk-api
+
+# 브라우저에서 확인
+open http://localhost:8000/docs
+```
+
+## ☁️ 클라우드 배포
+
+### 🎯 ECS 배포 (권장 - 프로덕션)
+
+AWS ECS Fargate를 사용한 서버리스 컨테이너 배포입니다.
+
+**장점:**
+- ✅ 서버 관리 불필요
+- ✅ 자동 스케일링
+- ✅ 로드 밸런서 통합 쉬움
+- ✅ CI/CD 파이프라인 구축 용이
+
+상세한 배포 가이드는 **[ECS_DEPLOY.md](ECS_DEPLOY.md)**를 참고하세요.
+
+간단 요약:
+```bash
+# 1. ECR에 로그인
+aws ecr get-login-password --region us-east-1 | \
+  docker login --username AWS --password-stdin \
+  123456789012.dkr.ecr.us-east-1.amazonaws.com
+
+# 2. 이미지 빌드 및 푸시
+docker build -t it-helpdesk-api .
+docker tag it-helpdesk-api:latest \
+  123456789012.dkr.ecr.us-east-1.amazonaws.com/it-helpdesk-api:latest
+docker push 123456789012.dkr.ecr.us-east-1.amazonaws.com/it-helpdesk-api:latest
+
+# 3. ECS 서비스 생성 (AWS Console 또는 CLI)
+```
+
+### 🚀 EC2 배포 (빠른 테스트)
+
+간단한 테스트나 데모 목적으로 사용합니다.
+
+상세한 배포 가이드는 **[EC2_DEPLOY.md](EC2_DEPLOY.md)**를 참고하세요.
 
 간단 요약:
 ```bash
